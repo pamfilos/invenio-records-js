@@ -154,22 +154,52 @@ function InvenioRecordsCtrl($scope, $rootScope, $q, $window, $location,
     return deferred.promise;
   }
 
+
   /**
-    * Do a data massage before sending with request
+    * Remove any empty values from the data
     * @memberof InvenioRecordsCtrl
-    * @function cleanData
+    * @function defaultDataPrepare
+    * @param {Object} data - Provided by ``extra-params.data``.
+    * @param {Object} unwanted - A list with unwanted values.
+    *
     */
-  function cleanData() {
-    var _data = angular.merge({}, {metadata: vm.invenioRecordsModel});
-    var unwatend = [[null], [{}], '', [undefined]];
-    angular.forEach(_data.metadata, function(value, key) {
-      angular.forEach(unwatend, function(_value) {
+  function removeEmptyValues(data, unwanted) {
+    var _unwantend = unwanted || [[null], [{}], '', [undefined]];
+    angular.forEach(data, function(value, key) {
+      angular.forEach(_unwantend, function(_value) {
         if (angular.equals(_value, value))  {
-          delete _data[key];
+          delete data[key];
         }
       });
     });
-    return _data;
+    return data;
+  }
+
+  /**
+    * The data preparation before make a request
+    * @memberof InvenioRecordsCtrl
+    * @function defaultRequestPrepare
+    * @param {Object} url - The request url.
+    * @param {Object} method - The request method.
+    * @param {Object} model -The data model.
+    * @param {Object} extraParams - Provided by ``extra-params``.
+    *
+    */
+  function defaultRequestPrepare(url, method, model, extraParams) {
+    // Clean the model
+    var _model = removeEmptyValues(model) || {};
+    // Pass all the data information
+    var _data = angular.merge(
+      {},
+      extraParams.data || {},
+      _model
+    );
+    return {
+      url: url,
+      method: (method || 'PUT').toUpperCase(),
+      data: _data,
+      headers: extraParams.headers || {}
+    };
   }
 
   /**
@@ -180,13 +210,14 @@ function InvenioRecordsCtrl($scope, $rootScope, $q, $window, $location,
     * @param {String} method - The method (POST, PUT, DELETE).
     */
   function makeActionRequest(type, method) {
-    var _data = cleanData();
-    return InvenioRecordsAPI.request({
-      url: vm.invenioRecordsEndpoints[type],
-      method: (method || 'PUT').toUpperCase(),
-      data: _data,
-      headers: vm.invenioRecordsArgs.headers || {}
-    });
+    var request = (vm.requestPrepare || defaultRequestPrepare)
+      .call(this,
+        vm.invenioRecordsEndpoints[type],
+        method,
+        vm.invenioRecordsModel,
+        vm.invenioRecordsArgs
+      );
+    return InvenioRecordsAPI.request(request);
   }
 
   /**
@@ -436,6 +467,10 @@ function InvenioRecordsCtrl($scope, $rootScope, $q, $window, $location,
   vm.actionHandler = invenioRecordsHandler;
   // Remove validation
   vm.removeValidationMessage = invenioRecordsRemoveValidation;
+  // Remove empty values
+  vm.removeEmptyValues = removeEmptyValues;
+  // Prepare for action request
+  vm.defaultRequestPrepare = defaultRequestPrepare;
 
   ////////////
 

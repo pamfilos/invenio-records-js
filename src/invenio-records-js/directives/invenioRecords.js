@@ -53,7 +53,6 @@ function invenioRecords() {
     * @param {InvenioRecordsCtrl} vm - Invenio records controller.
     */
   function link(scope, element, attrs, vm) {
-
     // Upadate parameters
     // Get extra template parameters
     var templateParams = {
@@ -80,7 +79,6 @@ function invenioRecords() {
     };
     // Get the record object
     var record = JSON.parse(attrs.record || '{}');
-
     // Spread the love of initialization
     scope.$broadcast(
       'invenio.records.init', args, endpoints, record, links
