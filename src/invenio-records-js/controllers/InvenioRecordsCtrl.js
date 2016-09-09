@@ -135,7 +135,9 @@ function InvenioRecordsCtrl($scope, $rootScope, $q, $window, $location,
       InvenioRecordsAPI.request({
         method: 'POST',
         url: vm.invenioRecordsEndpoints.initialization,
-        data: {},
+        data: {
+          '$schema': vm.invenioRecordsEndpoints.schema
+        },
         headers: vm.invenioRecordsArgs.headers || {}
       }).then(function success(response) {
         // Upadate the endpoints
@@ -192,6 +194,9 @@ function InvenioRecordsCtrl($scope, $rootScope, $q, $window, $location,
     var _data = angular.merge(
       {},
       extraParams.data || {},
+      {
+        '$schema': vm.invenioRecordsEndpoints.schema
+      },
       _model
     );
     return {
